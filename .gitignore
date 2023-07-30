@@ -1,0 +1,38 @@
+# Ignore general build results
+*.out
+*.[ao]
+*.so
+*.so*
+*.exe
+*.dll
+*.lib
+*.obj
+*.res
+*.def
+*.pdb
+*.exp
+*.tmp
+*.dmp
+**/x64/
+**/build/
+**/Release/
+**/Debug/
+**/Release XP/
+**/Debug XP/
+*.log
+*.tlog
+**/*.log/
+# Ignore IDE profiles
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.aps
+*.db
+**/.vs/
+**/.vscode/
+*.layout
+# Version control
+**/.svn/
+# target
+gen-iir
