@@ -511,7 +511,7 @@ void print_help(void)
         "For further details please visit www.dsplib.org\n");
 }
 
-// type a C-header for filter output
+// type a C-header (const(s) and type(s)) for filter design output
 void print_c_header(const t_parms *parms)
 {
  if(GEN_IIR_CHEXUI == parms -> ix_lis_type.val)
@@ -562,7 +562,7 @@ void print_c_header(const t_parms *parms)
  printf("} RP_IIR_FILTER;\n\n");
 }
 
-// double - unsigned hex converter
+// double - unsigned hex converter (be careful with *buf)
 char *dbl2hb(double val, char *buf, size_t buflen)
 {
  union du
@@ -867,9 +867,9 @@ void print_filter(const t_parms *parms, const t_iir_impl *impl, int is_afmt)
 // the main
 int main(int argc, char **argv)
 {
- void *hdspl = dspl_load();
+ void *hdspl    = dspl_load();
  t_parms *parms = init_parms();
- int is_afmt = chk_a_printf();
+ int is_afmt    = chk_a_printf();
 
  if(NULL == hdspl)
   error("Can't load libdspl DLL / shared object\n");
