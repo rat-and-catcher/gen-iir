@@ -247,7 +247,12 @@ void* dspl_load()
         char* error;
         void *handle;
         /* open the *.so */
-        handle = dlopen ("./libdspl.so", RTLD_LAZY);
+        /* rat-and-catcher::
+         * 1-st - try to load from current dir;
+         * 2-nd-according ldconfig rules
+         */
+        if(NULL == (handle = dlopen ("./libdspl.so", RTLD_LAZY)))
+            handle = dlopen ("libdspl.so", RTLD_LAZY);
         if (!handle)
         {
             printf("libdspl.so loading ERROR!\n");
