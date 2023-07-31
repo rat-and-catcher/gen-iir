@@ -81,7 +81,7 @@ const t_str2val f_types[] =
 const char ename_butter[] = "RP_IIR_BUTTER";    // for consumer code
 const char ename_cheby1[] = "RP_IIR_CHEBY1";
 const char ename_cheby2[] = "RP_IIR_CHEBY2";
-const char ename_ellip [] = "RP_IIR_ELLIP ";
+const char ename_ellip [] = "RP_IIR_ELLIP" ;
 
 const t_str2val f_aprxs[] =
 {
@@ -355,6 +355,10 @@ void norm_parms(t_parms *parms)
    parms -> f_order.val *= 2;                       // true default value
   }
  }
+ else
+ {
+  parms -> f_cutoff_right.val = 0.0;                // LPF/HPF does not have right cutoff
+ }
 
  // very roughly boundary checks. We keep some space to trigger internal DSPL limits
  if(parms -> f_order.val < 1 || parms -> f_order.val > 1000)
@@ -379,11 +383,11 @@ void norm_parms(t_parms *parms)
  if(is_band_filter
     && ((parms -> f_cutoff_right.val <= parms -> f_cutoff.val)
         ||
-        (parms -> f_cutoff_right.val <= parms -> f_cutoff.val)
+        (parms -> f_cutoff_right.val >= 1.0)
        )
    )
  {
-  error("?? [left] Cutoff freq should be in (0..1)\n", parms -> f_cutoff.val);
+  error("??Riht cutoff freq should be in (0..1)\n", parms -> f_cutoff_right.val);
  }
 }
 
@@ -543,7 +547,7 @@ void print_c_header(const t_parms *parms)
         , ename_ellip
  );
  printf("// the filter (design + coefficients):\n"
-        "typedef struct s_rp_iir_filter\n"
+        "typedef struct s_rp_iir_filter_descr\n"
         "{\n"
         "  unsigned flags;            // RP_IIR_LPF-or-so | RP_IIR_BUTTER-or-so\n"
         "  int      order;\n"
@@ -551,6 +555,7 @@ void print_c_header(const t_parms *parms)
         "  double   rillpe;\n"
         "  double   left_cutoff;\n"
         "  double   right_cutoff;\n"
+        "  double   transition_width;\n"
  );
  printf(GEN_IIR_CHEXUI == parms -> ix_lis_type.val?
         "  uint64_t *vec_b;           // order + 1 values\n"
@@ -559,7 +564,7 @@ void print_c_header(const t_parms *parms)
         "  double   *vec_b;           // order + 1 values\n"
         "  double   *vec_a;           // order + 1 values\n"
  );
- printf("} RP_IIR_FILTER;\n\n");
+ printf("} RP_IIR_FILTER_DESCR;\n\n");
 }
 
 // double - unsigned hex converter (be careful with *buf)
@@ -805,7 +810,7 @@ void print_filter(const t_parms *parms, const t_iir_impl *impl, int is_afmt)
  }
  else
  {
-  printf("RP_IIR_FILTER rp_iir_filter =   // TODO: CHANGE THE NAME!:\n"
+  printf("RP_IIR_FILTER_DESCR rp_iir_filter =   // TODO: CHANGE THE NAME!:\n"
          "{\n"
          "// -- the design parameters:\n"
          "  %s | %s,\n"
@@ -919,9 +924,15 @@ int main(int argc, char **argv)
   }
   else
   {
-   // it seems return stop freauency for analog LPF with pass freq. 1.0 rad/sec
+   int an_order = ((DSPL_FILTER_BPASS == f_types[parms -> ix_f_type.val].val)
+                      ||  (DSPL_FILTER_BSTOP == f_types[parms -> ix_f_type.val].val))?
+                    parms -> f_order.val / 2
+                    :
+                    parms -> f_order.val;
+
+   // it seems return stop freauency for analog LPF with pass freq. 0.5?? rad/sec
    impl.tw = filter_ws1
-              ( parms -> f_order  .val
+              ( an_order
               , parms -> f_ripple .val
               , parms -> f_suppr  .val
               ,      f_types[parms -> ix_f_type.val].val
