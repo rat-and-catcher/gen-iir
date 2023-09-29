@@ -3,7 +3,7 @@
 NOTE::the top (narrow TW@elliptic-filters) produce different results
 in Windows MinGW64 and MinGW32 bits. All of the things seems related
 to different FP implementation (FPU-80 bit on 32-bit and SSE2 on 64-bit
-implementations. To have "exactly" double coeffs. please reimplement
+implementations). To have "exactly" double coeffs. please reimplement
 this under high prec arythmetics.
 
 # gen-iir -- tiny IIR filter calculator
