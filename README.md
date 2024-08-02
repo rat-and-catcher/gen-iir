@@ -10,10 +10,10 @@ implementation (even for Batterworth approximation). Filters near
 half-band works just fine (how fine?). For example, the next designs
 doesnt work:
 
-"""
+```
 gen-iir -x -n:15 -s:60 -l:0.05 -a:butter -t:lpf
 gen-iir -x -n:15 -s:60 -l:0.1 -a:ellip -t:lpf
-"""
+```
 
 Filters calculators by other tools (demo programs or commercial
 products; we dont take into a count Matlab) give soficient results
@@ -47,7 +47,9 @@ details.
 
 For usage information, please run
 
+```
 	gen-iir -h
+```
 
 * If you run the program without arguments it should calculate
 some default filter.
