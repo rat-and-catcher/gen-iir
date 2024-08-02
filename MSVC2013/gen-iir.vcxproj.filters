@@ -13,16 +13,16 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\dskp">
-      <UniqueIdentifier>{1be4fbf8-aa2d-4fde-ab80-5e36e2593221}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\dspl">
       <UniqueIdentifier>{606ab303-50d9-45e6-b963-4f1dd3541fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dspl">
+      <UniqueIdentifier>{1be4fbf8-aa2d-4fde-ab80-5e36e2593221}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\dspl\dspl.h">
-      <Filter>Header Files\dskp</Filter>
+      <Filter>Header Files\dspl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

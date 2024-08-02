@@ -31,7 +31,7 @@
 #include "dspl/dspl.h"
 
 // the program version
-const char gi_ver[] = "X01.00.00";
+const char gi_ver[] = "X01.01.00";
 
 // the double parameter type
 typedef struct s_double_p
@@ -144,6 +144,7 @@ typedef struct s_parms
  t_double_p     f_cutoff_right;         // -r:<dbl>         :: right cutoff freq, (0..1), band only
  t_int_p        ix_lis_type;            // -o:RAW-or-so     :: index of type of output in l_types[]
  t_int_p        lis_wide;               // -w               :: output all doubles representation
+ t_int_p        rough_test;             // -x               :: very rough test for stableness
 } t_parms;
 
 // filter implementation (all that was calculated)
@@ -172,7 +173,9 @@ void error(const char *fmtmsg, ...)
  va_list args;
  va_start(args, fmtmsg);
 
+ fflush(stdout);
  vfprintf(stderr, fmtmsg, args);
+ fflush(stderr);
  exit(1);
 
  va_end(args);
@@ -210,6 +213,7 @@ t_parms *init_parms(void)
  INI_PARM(f_cutoff_right,   F_CUTOFF_RIGHT_DEFAULT);    // -r:<dbl>         :: right cutoff freq, (0..1), band only
  INI_PARM(ix_lis_type,      IX_GEN_IIR_DEFAULT    );    // -o:RAW-or-so     :: index of type of output in l_types[]
  INI_PARM(lis_wide,         0                     );    // -w               :: output all doubles representation
+ INI_PARM(rough_test,       0                     );    // -x               :: rugh test for stability
 
 #undef  INI_PARM
 
@@ -294,15 +298,16 @@ void parse_cmd_line(int argc, char **argv, t_parms *parms)
     UPD_PARM('h', show_help,          1                        ); // -h               :: show help, no processing
     UPD_PARM('j', show_c_defs,        1                        ); // -j               :: show C-defs for -o:C*, no processing
     UPD_PARM('c', do_dbl_bin,         parse_parm(ps, NULL     )); // -c:<dbl>         :: double hex calculator, no processing
-    UPD_PARM('t', ix_f_type,    (int) parse_parm(ps, f_types  )); // -t LPF-or-so     :: index in f_types[]
-    UPD_PARM('a', ix_f_aprx,    (int) parse_parm(ps, f_aprxs  )); // -a BUTTER-or-so  :: index in f_aprxs[]
-    UPD_PARM('n', f_order,      (int) parse_parm(ps, NULL     )); // -n <int>         :: filter order
-    UPD_PARM('s', f_suppr,            parse_parm(ps, NULL     )); // -s <dbl>         :: suppression in stop band, dB
-    UPD_PARM('p', f_ripple,           parse_parm(ps, NULL     )); // -p <dbl>         :: max ripple in pass band, dB
-    UPD_PARM('l', f_cutoff,           parse_parm(ps, NULL     )); // -l <dbl>         :: [left] cutoff freq, (0..1)
-    UPD_PARM('r', f_cutoff_right,     parse_parm(ps, NULL     )); // -r <dbl>         :: right cutoff freq, (0..1), band only
-    UPD_PARM('o', ix_lis_type,  (int) parse_parm(ps, l_types  )); // -o RAW-or-so     :: index of type of output in l_types[]
+    UPD_PARM('t', ix_f_type,    (int) parse_parm(ps, f_types  )); // -t:LPF-or-so     :: index in f_types[]
+    UPD_PARM('a', ix_f_aprx,    (int) parse_parm(ps, f_aprxs  )); // -a:BUTTER-or-so  :: index in f_aprxs[]
+    UPD_PARM('n', f_order,      (int) parse_parm(ps, NULL     )); // -n:<int>         :: filter order
+    UPD_PARM('s', f_suppr,            parse_parm(ps, NULL     )); // -s:<dbl>         :: suppression in stop band, dB
+    UPD_PARM('p', f_ripple,           parse_parm(ps, NULL     )); // -p:<dbl>         :: max ripple in pass band, dB
+    UPD_PARM('l', f_cutoff,           parse_parm(ps, NULL     )); // -l:<dbl>         :: [left] cutoff freq, (0..1)
+    UPD_PARM('r', f_cutoff_right,     parse_parm(ps, NULL     )); // -r:<dbl>         :: right cutoff freq, (0..1), band only
+    UPD_PARM('o', ix_lis_type,  (int) parse_parm(ps, l_types  )); // -o:RAW-or-so     :: index of type of output in l_types[]
     UPD_PARM('w', lis_wide,           1                        ); // -w               :: output all doubles representation
+    UPD_PARM('x', rough_test,         1                        ); // -x               :: rough test for stability
 
 #undef  UPD_PARM
 
@@ -450,7 +455,7 @@ void print_help(void)
         "gen-iir [-t:<filter-type>] [-a:<approx-type] [-n:<order>] \\\n"
         "   [-s:<suppression-dB>] [-p:<ripple-dB>] \\\n"
         "   [-l:<cutoff>] [-r:<right-cutoff>] \\\n"
-        "   [-o:<listing-type>] [-w]\n"
+        "   [-o:<listing-type>] [-w] [-x]\n"
         "Note, that all filter design and listing parameters are optional.\n\n");
  printf("<filter-type> can be:\n"
         "%s (default)\t\t-- Low Pass Filter,\n"
@@ -508,6 +513,8 @@ void print_help(void)
         , l_types[3].str);
  printf("-w (\"wide output\") turn on output of filter coefficients\n"
         "   to all available forms\n\n");
+ printf("-x make rough filter stabily check on white noise signal\n"
+        "   (it's really rough)\n\n");
  printf("Please note, that all \"floats\" represented as double (64 bits) values.\n"
         "You can use \'=\' against \':\' in values specifications, but the\n"
         "blanks in '-<key>:<value>' are inadmissible. Note also, that <value> is\n"
@@ -948,6 +955,67 @@ int main(int argc, char **argv)
     impl.tw = (2.0 * atan(impl.tw) / M_PI - 0.5);
    }
    print_filter(parms, &impl, is_afmt);
+
+   // the ugly test for stableness (we mistrust DSPL polyroots(), sorry)
+   if(parms -> rough_test.val)
+   {
+#define TLEN        (1 << 22)
+    double *test_signal = cmalloc(TLEN * sizeof(double));
+    random_t rnd = { 0 };
+    uint64_t seed = 0x123456789012345ULL;
+    uint32_t nans = 0;
+    size_t i;
+
+    fflush(stdout);
+    fprintf(stderr, "-- Make rough stability test, it can take a time...\n");
+    fflush(stderr);
+
+    // make almost (-1..1) uniform white noise
+    res = random_init(&rnd, RAND_TYPE_MT19937, (void *)&seed);
+    if(res != RES_OK)
+    {
+     error("??DSPL:random_init() code: 0x%08X\n", res);
+    }
+
+    res = randu(test_signal, TLEN, &rnd);
+    if(res != RES_OK)
+    {
+     error("??DSPL:randu() code: 0x%08X\n", res);
+    }
+
+    for(i = 0; i < TLEN; ++i)
+    {
+     test_signal[i] = (test_signal[i] - 0.5) * 1.999 /* almost (-1..1) */;
+    }
+
+    // filter it with our brand-new filter
+    res = filter_iir(impl.b, impl.a, parms -> f_order.val, test_signal, TLEN, test_signal);
+    if(res != RES_OK)
+    {
+     error("??DSPL:randu() code: 0x%08X\n", res);
+    }
+    
+    // and collect the chips
+    for(i = 0; i < TLEN; ++i)
+    {
+     if(test_signal[i] != test_signal[i])
+      ++nans;
+    }
+    if(nans != 0)
+    {
+     fprintf(stderr, "** FILTER DEFINITELY UNSTABLE (total NaN's -- %u)\n", nans);
+    }
+    else
+    {
+     fprintf(stderr, "-- Filter looks stable\n");
+    }
+
+    if(test_signal)
+    {
+     free(test_signal);
+     test_signal = NULL;
+    }
+   }
   }
 
   free(impl.b);
