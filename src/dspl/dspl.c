@@ -55,6 +55,8 @@ p_cheby2_ap_wp1                         cheby2_ap_wp1                 ;
 p_cheby2_ap_zp                          cheby2_ap_zp                  ;
 p_cmplx2re                              cmplx2re                      ;
 p_concat                                concat                        ;
+p_contour2d                             contour2d                     ;
+p_contour2d_free                        contour2d_free                ;
 p_conv                                  conv                          ;
 p_conv_cmplx                            conv_cmplx                    ;
 p_conv_fft                              conv_fft                      ;
@@ -247,12 +249,16 @@ void* dspl_load()
         char* error;
         void *handle;
         /* open the *.so */
+
         /* rat-and-catcher::
          * 1-st - try to load from current dir;
          * 2-nd-according ldconfig rules
          */
         if(NULL == (handle = dlopen ("./libdspl.so", RTLD_LAZY)))
             handle = dlopen ("libdspl.so", RTLD_LAZY);
+        /* handle = dlopen ("./libdspl.so", RTLD_LAZY); */
+        /* /rat-and-catcher */
+        
         if (!handle)
         {
             printf("libdspl.so loading ERROR!\n");
@@ -279,6 +285,8 @@ void* dspl_load()
     LOAD_FUNC(cheby2_ap_zp);
     LOAD_FUNC(cmplx2re);
     LOAD_FUNC(concat);
+    LOAD_FUNC(contour2d);
+    LOAD_FUNC(contour2d_free);
     LOAD_FUNC(conv);
     LOAD_FUNC(conv_cmplx);
     LOAD_FUNC(conv_fft);

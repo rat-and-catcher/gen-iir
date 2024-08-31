@@ -2,7 +2,7 @@
  * Create IIR filter via Digital Signal Processing Library Dspl-2.0
  * Please see http://dsplib.org for details.
  *
- * Author Rat And Catcher tech., 2023.
+ * Author Rat And Catcher tech., 2023-2024
  * This trivial code is public domain.
  * It comes without any warranty.
  */
@@ -230,7 +230,8 @@ void warn_mult(const char *p)
 // -- parse key's parameter
 double parse_parm(const char *p, const t_str2val *sv /* NULL for numerical value */)
 {
- // double exactly any int value. p[1] is not a '\0', p[2] should be ':' or '='.
+ // double value represent any integer value exactly.
+ // p[1] is not a '\0', p[2] should be ':' or '='.
  // the parameter string should begin from p[3].
  if(p[2] != ':' && p[2] != '=')
   error("??Wrong value delimiter at \'%s\'\n", p);
@@ -307,7 +308,7 @@ void parse_cmd_line(int argc, char **argv, t_parms *parms)
     UPD_PARM('r', f_cutoff_right,     parse_parm(ps, NULL     )); // -r:<dbl>         :: right cutoff freq, (0..1), band only
     UPD_PARM('o', ix_lis_type,  (int) parse_parm(ps, l_types  )); // -o:RAW-or-so     :: index of type of output in l_types[]
     UPD_PARM('w', lis_wide,           1                        ); // -w               :: output all doubles representation
-    UPD_PARM('x', rough_test,         1                        ); // -x               :: rough test for stability
+    UPD_PARM('x', rough_test,         1                        ); // -x               :: make rough test for stability
 
 #undef  UPD_PARM
 
@@ -418,7 +419,7 @@ int chk_a_printf(void)                  // !=0 -> %A supported
   {
    if('P' == *p || 'p' == *p || '.' == *p)
     ++res;                                  // += 2 for each test format;
-  }                                         // shoul be 4 at the end
+  }                                         // should be 4 at the end
  }
  return (res == 4);                         // silly idiotic compare
 }
@@ -427,7 +428,7 @@ int chk_a_printf(void)                  // !=0 -> %A supported
 void print_version(void)
 {
  printf("gen-iir %s -- DSPL-2 - based (see www.dsplib.org) IIR filters disigner.\n"
-        "The front-end CLI program written by Rat-and-Catcher tech., 2023\n"
+        "The front-end CLI program written by Rat-and-Catcher tech., 2023-2024\n"
         "Internal DSPL info:\n"
         , gi_ver);
 
